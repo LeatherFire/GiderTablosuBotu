@@ -63,10 +63,10 @@ export default function DashboardPage() {
 
   return (
     <AuthGuard>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-600">Gider takip özeti</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600">Gider takip özeti</p>
         </div>
 
         {loading ? (
@@ -76,61 +76,61 @@ export default function DashboardPage() {
         ) : stats ? (
           <>
             {/* Özet Kartları */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Bu Ay Toplam</p>
-                    <p className="text-2xl font-bold text-gray-800">{formatCurrency(stats.monthlyTotal)}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Bu Ay Toplam</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(stats.monthlyTotal)}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Bu Ay İşlem</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.monthlyCount} adet</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Bu Ay İşlem</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-800">{stats.monthlyCount} adet</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Genel Toplam</p>
-                    <p className="text-2xl font-bold text-gray-800">{formatCurrency(stats.allTimeTotal)}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Genel Toplam</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(stats.allTimeTotal)}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Grafikler */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Son 7 Gün */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Son 7 Gün</h3>
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Son 7 Gün</h3>
                 {stats.dailyData && stats.dailyData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={stats.dailyData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" />
-                      <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} />
+                      <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} tick={{ fontSize: 12 }} width={40} />
                       <Tooltip
                         formatter={(value: number) => [formatCurrency(value), 'Toplam']}
                         labelFormatter={(label) => `Tarih: ${label}`}
@@ -139,17 +139,17 @@ export default function DashboardPage() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-[250px] flex items-center justify-center text-gray-500">
+                  <div className="h-[200px] flex items-center justify-center text-gray-500">
                     Henüz veri yok
                   </div>
                 )}
               </div>
 
               {/* Kategori Dağılımı */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Kategori Dağılımı</h3>
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Kategori Dağılımı</h3>
                 {stats.categoryStats && stats.categoryStats.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
                       <Pie
                         data={stats.categoryStats}
@@ -157,8 +157,8 @@ export default function DashboardPage() {
                         nameKey="category"
                         cx="50%"
                         cy="50%"
-                        outerRadius={80}
-                        label={({ name, percent }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
+                        outerRadius={60}
+                        label={({ name, percent }) => `${(name || '').substring(0, 6)} ${((percent || 0) * 100).toFixed(0)}%`}
                       >
                         {stats.categoryStats.map((entry, index) => (
                           <Cell key={entry.category} fill={COLORS[index % COLORS.length]} />
@@ -168,7 +168,7 @@ export default function DashboardPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-[250px] flex items-center justify-center text-gray-500">
+                  <div className="h-[200px] flex items-center justify-center text-gray-500">
                     Henüz veri yok
                   </div>
                 )}
@@ -176,26 +176,26 @@ export default function DashboardPage() {
             </div>
 
             {/* Son İşlemler ve Banka Dağılımı */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Son İşlemler */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Son İşlemler</h3>
-                <div className="space-y-3">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Son İşlemler</h3>
+                <div className="space-y-2 sm:space-y-3">
                   {!stats.recentExpenses || stats.recentExpenses.length === 0 ? (
                     <p className="text-gray-500 text-center py-4">Henüz işlem yok</p>
                   ) : (
                     stats.recentExpenses.map((expense) => (
                       <div
                         key={expense.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg"
                       >
-                        <div>
-                          <p className="font-medium text-gray-800">{expense.recipient}</p>
-                          <p className="text-sm text-gray-500">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{expense.recipient}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">
                             {expense.category} • {format(new Date(expense.date), 'd MMM yyyy', { locale: tr })}
                           </p>
                         </div>
-                        <p className="font-semibold text-gray-800">{formatCurrency(expense.amount)}</p>
+                        <p className="font-semibold text-gray-800 text-sm sm:text-base shrink-0 ml-2">{formatCurrency(expense.amount)}</p>
                       </div>
                     ))
                   )}
@@ -203,28 +203,28 @@ export default function DashboardPage() {
               </div>
 
               {/* Banka Dağılımı */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Banka Dağılımı</h3>
-                <div className="space-y-3">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Banka Dağılımı</h3>
+                <div className="space-y-2 sm:space-y-3">
                   {!stats.bankStats || stats.bankStats.length === 0 ? (
                     <p className="text-gray-500 text-center py-4">Henüz işlem yok</p>
                   ) : (
                     stats.bankStats.map((bank, index) => (
                       <div
                         key={bank.bank}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-3 h-3 rounded-full shrink-0"
                             style={{ backgroundColor: COLORS[index % COLORS.length] }}
                           />
-                          <div>
-                            <p className="font-medium text-gray-800">{bank.bank}</p>
-                            <p className="text-sm text-gray-500">{bank.count} işlem</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-800 text-sm sm:text-base">{bank.bank}</p>
+                            <p className="text-xs sm:text-sm text-gray-500">{bank.count} işlem</p>
                           </div>
                         </div>
-                        <p className="font-semibold text-gray-800">{formatCurrency(bank.total)}</p>
+                        <p className="font-semibold text-gray-800 text-sm sm:text-base shrink-0 ml-2">{formatCurrency(bank.total)}</p>
                       </div>
                     ))
                   )}

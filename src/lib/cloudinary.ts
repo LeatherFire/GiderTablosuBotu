@@ -24,6 +24,8 @@ export async function uploadReceipt(buffer: Buffer, filename: string): Promise<U
         folder: 'gider-tablosu/receipts',
         public_id: filename,
         resource_type: 'auto', // PDF ve görsel destekler
+        access_mode: 'public', // Herkese açık erişim
+        type: 'upload', // Public upload
       },
       (error, result) => {
         if (error) {
