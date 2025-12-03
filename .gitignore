@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# local database
+prisma/dev.db
+prisma/dev.db-journal
+
+# backup files (sensitive data)
+/backup/
+
+# local receipts folder
+/receipts/

@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  username  String    @unique
+  password  String
+  name      String
+  role      String    @default("user") // admin, user
+  telegramId String?  @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expenses  Expense[]
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  amount        Float
+  currency      String   @default("TRY")
+
+  // Alıcı Bilgileri
+  recipient     String   // Alıcı adı
+  recipientBank String?  // Alıcı banka adı
+  recipientIban String?  // Alıcı IBAN
+
+  // Gönderen Bilgileri
+  sender        String?  // Gönderen adı
+  senderIban    String?  // Gönderen IBAN
+
+  // Banka/Şube Bilgileri
+  bank          String   // Banka adı (Ziraat, DenizBank, vb.)
+  branchCode    String?  // Şube kodu
+  branchName    String?  // Şube adı
+
+  // Hesap Bilgileri
+  accountType   String?  // IBAN, Hesap No, Kart
+  accountNumber String?  // Hesap numarası
+
+  // İşlem Detayları
+  transactionType String? // FAST, EFT, Havale, vb.
+  transactionId   String? // İşlem referans no / FAST sorgu no
+  description     String? // Açıklama/not
+
+  // Masraflar
+  commission    Float?   // Komisyon tutarı
+  tax           Float?   // BSMV
+  totalFee      Float?   // Toplam masraf
+
+  // Tarih/Saat
+  date          DateTime // İşlem tarihi
+  time          String?  // İşlem saati (HH:mm:ss)
+
+  // Kategori ve Dosya
+  category      String   @default("Diger")
+  receiptPath   String?  // Dekont dosya yolu
+  receiptType   String?  // pdf, jpg, png
+
+  // Meta
+  aiRawResponse String?  // AI'ın ham yanıtı (debug için)
+  isManual      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#6B7280")
+  createdAt DateTime @default(now())
+}
