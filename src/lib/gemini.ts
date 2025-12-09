@@ -3,6 +3,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export interface ParsedReceipt {
+  // İşlem Yönü - Gelir mi Gider mi?
+  transactionDirection: 'income' | 'expense'
+
   // Tutar
   amount: number | null
   currency: string
@@ -14,6 +17,7 @@ export interface ParsedReceipt {
 
   // Gönderen Bilgileri
   sender: string | null
+  senderBank: string | null
   senderIban: string | null
 
   // Banka/Şube Bilgileri
@@ -43,7 +47,7 @@ export interface ParsedReceipt {
   suggestedCategory: string | null
 }
 
-const CATEGORIES = [
+const EXPENSE_CATEGORIES = [
   'İşçi',
   'Kasap',
   'Toptancı',
@@ -57,6 +61,15 @@ const CATEGORIES = [
   'Diğer',
 ]
 
+const INCOME_CATEGORIES = [
+  'Satış Geliri',
+  'Hizmet Geliri',
+  'Kira Geliri',
+  'Faiz Geliri',
+  'İade',
+  'Diğer Gelir',
+]
+
 export async function analyzeReceipt(imageBase64: string, mimeType: string): Promise<ParsedReceipt> {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
@@ -65,6 +78,7 @@ export async function analyzeReceipt(imageBase64: string, mimeType: string): Pro
 Lütfen aşağıdaki TÜM bilgileri JSON formatında çıkar. Sadece JSON döndür, başka bir şey yazma. Her alanı dikkatlice oku ve doldur.
 
 {
+  "transactionDirection": "<işlem yönü: income veya expense>",
   "amount": <işlem tutarı, sayı olarak, virgül yerine nokta kullan, masraflar HARİÇ ana tutar>,
   "currency": "TRY",
 
@@ -73,6 +87,7 @@ Lütfen aşağıdaki TÜM bilgileri JSON formatında çıkar. Sadece JSON dönd�
   "recipientIban": "<alıcı IBAN numarası, TR ile başlayan>",
 
   "sender": "<gönderen kişi adı>",
+  "senderBank": "<gönderen banka adı>",
   "senderIban": "<gönderen IBAN numarası>",
 
   "bank": "<işlemi yapan banka adı, örn: Ziraat Bankası>",
@@ -82,7 +97,7 @@ Lütfen aşağıdaki TÜM bilgileri JSON formatında çıkar. Sadece JSON dönd�
   "accountType": "<IBAN veya Hesap No veya Kart>",
   "accountNumber": "<hesap numarası, IBAN değilse>",
 
-  "transactionType": "<işlem türü: FAST, EFT, Havale, Virman>",
+  "transactionType": "<işlem türü: Gelen EFT, Gelen Havale, Gelen FAST, EFT, Havale, FAST, Virman>",
   "transactionId": "<işlem referans no, FAST sorgu no, dekont no>",
   "description": "<açıklama/mesaj varsa>",
 
@@ -96,10 +111,21 @@ Lütfen aşağıdaki TÜM bilgileri JSON formatında çıkar. Sadece JSON dönd�
   "suggestedCategory": "<aşağıdaki kategorilerden en uygun olanı>"
 }
 
-Kategori seçenekleri (sadece bunlardan birini seç):
-${CATEGORIES.join(', ')}
+İŞLEM YÖNÜ TESPİTİ (ÇOK ÖNEMLİ):
+- İşlem türü "Gelen EFT", "Gelen Havale", "Gelen FAST", "Gelen Transfer" içeriyorsa → "income" (GELİR)
+- İşlem türü "Giden EFT", "EFT", "Havale", "FAST", "Virman", "Ödeme" içeriyorsa → "expense" (GİDER)
+- Dekontta "Gelen" kelimesi varsa → "income"
+- Dekontta "Gönderilen", "Gönderdiğiniz", "Ödeme" kelimesi varsa → "expense"
+- Hesaba para girdiyse (alıcı biziz) → "income"
+- Hesaptan para çıktıysa (gönderen biziz) → "expense"
 
-Kategori seçerken:
+GİDER Kategori seçenekleri (transactionDirection: "expense" ise):
+${EXPENSE_CATEGORIES.join(', ')}
+
+GELİR Kategori seçenekleri (transactionDirection: "income" ise):
+${INCOME_CATEGORIES.join(', ')}
+
+Gider kategorisi seçerken:
 - Eğer alıcı bir kişi adı ise ve tutar düşükse "İşçi" olabilir
 - Et, tavuk, balık ile ilgili ise "Kasap"
 - Toptan gıda, tedarikçi ise "Toptancı"
@@ -111,6 +137,14 @@ Kategori seçerken:
 - Kira ödemesi ise "Kira"
 - Elektrik, su, doğalgaz, telefon ise "Fatura"
 - Emin değilsen "Diğer"
+
+Gelir kategorisi seçerken:
+- Yemek satışı, catering hizmeti ise "Satış Geliri"
+- Danışmanlık, hizmet bedeli ise "Hizmet Geliri"
+- Kira ödemesi alıyorsanız "Kira Geliri"
+- Banka faizi ise "Faiz Geliri"
+- İade, geri ödeme ise "İade"
+- Emin değilsen "Diğer Gelir"
 
 ÖNEMLİ:
 - Eğer bir bilgi görünmüyorsa veya okunamıyorsa null yaz
@@ -140,6 +174,12 @@ Kategori seçerken:
 
     const parsed = JSON.parse(jsonMatch[0]) as ParsedReceipt
 
+    // Validasyon - transactionDirection
+    if (!parsed.transactionDirection || !['income', 'expense'].includes(parsed.transactionDirection)) {
+      // Varsayılan olarak expense kabul et (geriye uyumluluk)
+      parsed.transactionDirection = 'expense'
+    }
+
     // Validasyon - string tutarları sayıya çevir
     if (parsed.amount !== null && typeof parsed.amount === 'string') {
       parsed.amount = parseFloat((parsed.amount as string).replace(/[.,]/g, (m) => m === ',' ? '.' : ''))
@@ -154,8 +194,15 @@ Kategori seçerken:
       parsed.totalFee = parseFloat((parsed.totalFee as string).replace(',', '.'))
     }
 
-    if (parsed.suggestedCategory && !CATEGORIES.includes(parsed.suggestedCategory)) {
-      parsed.suggestedCategory = 'Diğer'
+    // Kategori validasyonu - işlem yönüne göre
+    if (parsed.transactionDirection === 'income') {
+      if (parsed.suggestedCategory && !INCOME_CATEGORIES.includes(parsed.suggestedCategory)) {
+        parsed.suggestedCategory = 'Diğer Gelir'
+      }
+    } else {
+      if (parsed.suggestedCategory && !EXPENSE_CATEGORIES.includes(parsed.suggestedCategory)) {
+        parsed.suggestedCategory = 'Diğer'
+      }
     }
 
     return parsed

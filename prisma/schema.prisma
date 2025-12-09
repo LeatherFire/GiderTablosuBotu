@@ -20,6 +20,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   expenses  Expense[]
+  incomes   Income[]
 }
 
 model Expense {
@@ -77,5 +78,49 @@ model Category {
   id        String   @id @default(cuid())
   name      String   @unique
   color     String   @default("#6B7280")
+  type      String   @default("expense") // expense, income, both
   createdAt DateTime @default(now())
+}
+
+model Income {
+  id            String   @id @default(cuid())
+  amount        Float
+  currency      String   @default("TRY")
+
+  // Gönderen (para gönderen) bilgileri
+  sender        String   // Gönderen adı (Lionia Turizm gibi)
+  senderBank    String?  // Gönderen banka
+  senderIban    String?  // Gönderen IBAN
+
+  // Alıcı (biz) bilgileri
+  recipient     String   // Alıcı adı (Bedia Uçar gibi)
+  recipientBank String?  // Alıcı banka
+  recipientIban String?  // Alıcı IBAN
+
+  // Banka/İşlem bilgileri
+  bank          String   // Banka adı
+  branchCode    String?  // Şube kodu
+  branchName    String?  // Şube adı
+
+  // İşlem Detayları
+  transactionType String? // Gelen EFT, Gelen Havale, vb.
+  transactionId   String? // İşlem referans no
+  description     String? // Açıklama
+
+  // Tarih/Saat
+  date          DateTime // İşlem tarihi
+  time          String?  // İşlem saati
+
+  // Kategori ve Dosya
+  category      String   @default("Diger")
+  receiptPath   String?  // Dekont dosya yolu
+  receiptType   String?  // pdf, jpg, png
+
+  // Meta
+  aiRawResponse String?  // AI'ın ham yanıtı
+  isManual      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
 }

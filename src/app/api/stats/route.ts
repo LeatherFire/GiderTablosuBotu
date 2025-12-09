@@ -16,8 +16,8 @@ export async function GET() {
   const monthEnd = endOfMonth(now)
   const last7Days = subDays(now, 7)
 
-  // Bu ayki toplam
-  const monthlyTotal = await prisma.expense.aggregate({
+  // Bu ayki gider toplamı
+  const monthlyExpenseTotal = await prisma.expense.aggregate({
     where: {
       date: {
         gte: monthStart,
@@ -29,15 +29,45 @@ export async function GET() {
     },
   })
 
-  // Genel toplam
-  const allTimeTotal = await prisma.expense.aggregate({
+  // Bu ayki gelir toplamı
+  const monthlyIncomeTotal = await prisma.income.aggregate({
+    where: {
+      date: {
+        gte: monthStart,
+        lte: monthEnd,
+      },
+    },
     _sum: {
       amount: true,
     },
   })
 
-  // Bu ayki işlem sayısı
-  const monthlyCount = await prisma.expense.count({
+  // Genel gider toplamı
+  const allTimeExpenseTotal = await prisma.expense.aggregate({
+    _sum: {
+      amount: true,
+    },
+  })
+
+  // Genel gelir toplamı
+  const allTimeIncomeTotal = await prisma.income.aggregate({
+    _sum: {
+      amount: true,
+    },
+  })
+
+  // Bu ayki gider sayısı
+  const monthlyExpenseCount = await prisma.expense.count({
+    where: {
+      date: {
+        gte: monthStart,
+        lte: monthEnd,
+      },
+    },
+  })
+
+  // Bu ayki gelir sayısı
+  const monthlyIncomeCount = await prisma.income.count({
     where: {
       date: {
         gte: monthStart,
@@ -130,10 +160,46 @@ export async function GET() {
     },
   })
 
+  // Son 5 gelir
+  const recentIncomes = await prisma.income.findMany({
+    orderBy: { date: 'desc' },
+    take: 5,
+    include: {
+      user: {
+        select: { name: true },
+      },
+    },
+  })
+
+  // Gelir kategori dağılımı (bu ay)
+  const incomeCategoryStats = await prisma.income.groupBy({
+    by: ['category'],
+    where: {
+      date: {
+        gte: monthStart,
+        lte: monthEnd,
+      },
+    },
+    _sum: {
+      amount: true,
+    },
+    orderBy: {
+      _sum: {
+        amount: 'desc',
+      },
+    },
+  })
+
+  // Net bakiye hesapla
+  const monthlyIncome = monthlyIncomeTotal._sum.amount || 0
+  const monthlyExpense = monthlyExpenseTotal._sum.amount || 0
+  const netBalance = monthlyIncome - monthlyExpense
+
   return NextResponse.json({
-    monthlyTotal: monthlyTotal._sum.amount || 0,
-    allTimeTotal: allTimeTotal._sum.amount || 0,
-    monthlyCount,
+    // Gider istatistikleri
+    monthlyTotal: monthlyExpense,
+    allTimeTotal: allTimeExpenseTotal._sum.amount || 0,
+    monthlyCount: monthlyExpenseCount,
     categoryStats: categoryStats.map((c) => ({
       category: c.category,
       total: c._sum.amount || 0,
@@ -145,5 +211,16 @@ export async function GET() {
       total: b._sum.amount || 0,
       count: b._count,
     })),
+    // Gelir istatistikleri
+    monthlyIncome,
+    allTimeIncome: allTimeIncomeTotal._sum.amount || 0,
+    monthlyIncomeCount,
+    incomeCategoryStats: incomeCategoryStats.map((c) => ({
+      category: c.category,
+      total: c._sum.amount || 0,
+    })),
+    recentIncomes,
+    // Net bakiye
+    netBalance,
   })
 }

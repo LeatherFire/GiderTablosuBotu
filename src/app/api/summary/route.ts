@@ -151,6 +151,96 @@ export async function GET(request: NextRequest) {
     const prevTotal = prevMonthStats._sum.amount || 0
     const changePercent = prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : 0
 
+    // GELİR İSTATİSTİKLERİ
+    // Aylık gelir özeti
+    const incomeStats = await prisma.income.aggregate({
+      where: {
+        date: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+      _sum: { amount: true },
+      _count: true,
+      _avg: { amount: true },
+      _max: { amount: true },
+    })
+
+    // Gelir kategori dağılımı
+    const incomeCategoryStats = await prisma.income.groupBy({
+      by: ['category'],
+      where: {
+        date: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+      _sum: { amount: true },
+      _count: true,
+      orderBy: {
+        _sum: { amount: 'desc' },
+      },
+    })
+
+    // Günlük gelir dağılımı
+    const incomes = await prisma.income.findMany({
+      where: {
+        date: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+      select: {
+        date: true,
+        amount: true,
+        category: true,
+      },
+    })
+
+    const dailyIncomeTotals: Record<string, number> = {}
+    incomes.forEach((income) => {
+      const dateStr = format(income.date, 'yyyy-MM-dd')
+      dailyIncomeTotals[dateStr] = (dailyIncomeTotals[dateStr] || 0) + income.amount
+    })
+
+    const dailyIncomeData = Object.entries(dailyIncomeTotals)
+      .map(([date, total]) => ({
+        date,
+        total,
+        label: format(new Date(date), 'd MMM', { locale: tr }),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+
+    // En büyük gelirler
+    const topIncomes = await prisma.income.findMany({
+      where: {
+        date: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+      orderBy: { amount: 'desc' },
+      take: 5,
+    })
+
+    // Önceki ay gelir karşılaştırması
+    const prevMonthIncomeStats = await prisma.income.aggregate({
+      where: {
+        date: {
+          gte: prevMonthStart,
+          lte: prevMonthEnd,
+        },
+      },
+      _sum: { amount: true },
+    })
+
+    const currentIncome = incomeStats._sum.amount || 0
+    const prevIncome = prevMonthIncomeStats._sum.amount || 0
+    const incomeChangePercent = prevIncome > 0 ? ((currentIncome - prevIncome) / prevIncome) * 100 : 0
+
+    // Net bakiye hesapla
+    const netBalance = currentIncome - currentTotal
+
     return NextResponse.json({
       month: monthName,
       monthOffset,
@@ -180,6 +270,26 @@ export async function GET(request: NextRequest) {
       weeklyData,
       topExpenses,
       aiSummary,
+      // Gelir verileri
+      incomeSummary: {
+        total: incomeStats._sum.amount || 0,
+        count: incomeStats._count,
+        average: incomeStats._avg.amount || 0,
+        max: incomeStats._max.amount || 0,
+      },
+      incomeComparison: {
+        prevTotal: prevIncome,
+        changePercent: incomeChangePercent,
+        increased: currentIncome > prevIncome,
+      },
+      incomeCategoryStats: incomeCategoryStats.map((c) => ({
+        category: c.category,
+        total: c._sum.amount || 0,
+        count: c._count,
+      })),
+      dailyIncomeData,
+      topIncomes,
+      netBalance,
     })
   } catch (error) {
     console.error('Summary error:', error)

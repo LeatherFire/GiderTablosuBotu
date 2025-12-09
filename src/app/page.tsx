@@ -25,6 +25,13 @@ interface Stats {
   dailyData: { date: string; total: number; label: string }[]
   recentExpenses: any[]
   bankStats: { bank: string; total: number; count: number }[]
+  // Gelir istatistikleri
+  monthlyIncome: number
+  allTimeIncome: number
+  monthlyIncomeCount: number
+  incomeCategoryStats: { category: string; total: number }[]
+  recentIncomes: any[]
+  netBalance: number
 }
 
 const COLORS = [
@@ -66,7 +73,7 @@ export default function DashboardPage() {
       <div className="space-y-4 sm:space-y-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-600">Gider takip özeti</p>
+          <p className="text-sm sm:text-base text-gray-600">Gelir-Gider takip özeti</p>
         </div>
 
         {loading ? (
@@ -75,48 +82,76 @@ export default function DashboardPage() {
           </div>
         ) : stats ? (
           <>
-            {/* Özet Kartları */}
+            {/* Ana Özet Kartları - Gelir, Gider, Net Bakiye */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              {/* Bu Ay Gelir */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-emerald-500">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500">Bu Ay Toplam</p>
-                    <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(stats.monthlyTotal)}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Bu Ay Gelir</p>
+                    <p className="text-lg sm:text-2xl font-bold text-emerald-600">+{formatCurrency(stats.monthlyIncome || 0)}</p>
+                    <p className="text-xs text-gray-400">{stats.monthlyIncomeCount || 0} işlem</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              {/* Bu Ay Gider */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-red-500">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500">Bu Ay İşlem</p>
-                    <p className="text-lg sm:text-2xl font-bold text-gray-800">{stats.monthlyCount} adet</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Bu Ay Gider</p>
+                    <p className="text-lg sm:text-2xl font-bold text-red-600">-{formatCurrency(stats.monthlyTotal)}</p>
+                    <p className="text-xs text-gray-400">{stats.monthlyCount} işlem</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              {/* Net Bakiye */}
+              <div className={`bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 ${(stats.netBalance || 0) >= 0 ? 'border-blue-500' : 'border-orange-500'}`}>
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center ${(stats.netBalance || 0) >= 0 ? 'bg-blue-100' : 'bg-orange-100'}`}>
+                    <svg className={`w-5 h-5 sm:w-6 sm:h-6 ${(stats.netBalance || 0) >= 0 ? 'text-blue-600' : 'text-orange-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-gray-500">Genel Toplam</p>
-                    <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(stats.allTimeTotal)}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Net Bakiye</p>
+                    <p className={`text-lg sm:text-2xl font-bold ${(stats.netBalance || 0) >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                      {(stats.netBalance || 0) >= 0 ? '+' : ''}{formatCurrency(stats.netBalance || 0)}
+                    </p>
+                    <p className="text-xs text-gray-400">Gelir - Gider</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Genel Toplam Kartları */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-emerald-600 font-medium">Toplam Gelir</p>
+                <p className="text-sm sm:text-lg font-bold text-emerald-700">{formatCurrency(stats.allTimeIncome || 0)}</p>
+              </div>
+              <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-red-600 font-medium">Toplam Gider</p>
+                <p className="text-sm sm:text-lg font-bold text-red-700">{formatCurrency(stats.allTimeTotal)}</p>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-blue-600 font-medium">Gelir İşlem</p>
+                <p className="text-sm sm:text-lg font-bold text-blue-700">{stats.monthlyIncomeCount || 0} adet</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-purple-600 font-medium">Gider İşlem</p>
+                <p className="text-sm sm:text-lg font-bold text-purple-700">{stats.monthlyCount} adet</p>
               </div>
             </div>
 
@@ -175,19 +210,22 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Son İşlemler ve Banka Dağılımı */}
+            {/* Son İşlemler - Gelir ve Gider */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {/* Son İşlemler */}
+              {/* Son Giderler */}
               <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Son İşlemler</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  Son Giderler
+                </h3>
                 <div className="space-y-2 sm:space-y-3">
                   {!stats.recentExpenses || stats.recentExpenses.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">Henüz işlem yok</p>
+                    <p className="text-gray-500 text-center py-4">Henüz gider yok</p>
                   ) : (
                     stats.recentExpenses.map((expense) => (
                       <div
                         key={expense.id}
-                        className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-2 sm:p-3 bg-red-50 rounded-lg"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{expense.recipient}</p>
@@ -195,40 +233,68 @@ export default function DashboardPage() {
                             {expense.category} • {format(new Date(expense.date), 'd MMM yyyy', { locale: tr })}
                           </p>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm sm:text-base shrink-0 ml-2">{formatCurrency(expense.amount)}</p>
+                        <p className="font-semibold text-red-600 text-sm sm:text-base shrink-0 ml-2">-{formatCurrency(expense.amount)}</p>
                       </div>
                     ))
                   )}
                 </div>
               </div>
 
-              {/* Banka Dağılımı */}
+              {/* Son Gelirler */}
               <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Banka Dağılımı</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                  Son Gelirler
+                </h3>
                 <div className="space-y-2 sm:space-y-3">
-                  {!stats.bankStats || stats.bankStats.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">Henüz işlem yok</p>
+                  {!stats.recentIncomes || stats.recentIncomes.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">Henüz gelir yok</p>
                   ) : (
-                    stats.bankStats.map((bank, index) => (
+                    stats.recentIncomes.map((income: any) => (
                       <div
-                        key={bank.bank}
-                        className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg"
+                        key={income.id}
+                        className="flex items-center justify-between p-2 sm:p-3 bg-emerald-50 rounded-lg"
                       >
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                          <div
-                            className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                          />
-                          <div className="min-w-0">
-                            <p className="font-medium text-gray-800 text-sm sm:text-base">{bank.bank}</p>
-                            <p className="text-xs sm:text-sm text-gray-500">{bank.count} işlem</p>
-                          </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{income.sender}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {income.category} • {format(new Date(income.date), 'd MMM yyyy', { locale: tr })}
+                          </p>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm sm:text-base shrink-0 ml-2">{formatCurrency(bank.total)}</p>
+                        <p className="font-semibold text-emerald-600 text-sm sm:text-base shrink-0 ml-2">+{formatCurrency(income.amount)}</p>
                       </div>
                     ))
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Banka Dağılımı */}
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Banka Dağılımı (Giderler)</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                {!stats.bankStats || stats.bankStats.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4 col-span-full">Henüz işlem yok</p>
+                ) : (
+                  stats.bankStats.map((bank, index) => (
+                    <div
+                      key={bank.bank}
+                      className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div
+                          className="w-3 h-3 rounded-full shrink-0"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 text-sm sm:text-base">{bank.bank}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">{bank.count} işlem</p>
+                        </div>
+                      </div>
+                      <p className="font-semibold text-gray-800 text-sm sm:text-base shrink-0 ml-2">{formatCurrency(bank.total)}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </>

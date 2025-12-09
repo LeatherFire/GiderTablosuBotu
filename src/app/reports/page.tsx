@@ -40,6 +40,22 @@ interface SummaryData {
   weeklyData: { day: string; total: number }[]
   topExpenses: any[]
   aiSummary: string
+  // Gelir verileri
+  incomeSummary: {
+    total: number
+    count: number
+    average: number
+    max: number
+  }
+  incomeComparison: {
+    prevTotal: number
+    changePercent: number
+    increased: boolean
+  }
+  incomeCategoryStats: { category: string; total: number; count: number }[]
+  dailyIncomeData: { date: string; total: number; label: string }[]
+  topIncomes: any[]
+  netBalance: number
 }
 
 const COLORS = [
@@ -85,7 +101,7 @@ export default function ReportsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Raporlar</h1>
-            <p className="text-sm sm:text-base text-gray-600">Detaylı gider analizi</p>
+            <p className="text-sm sm:text-base text-gray-600">Detaylı gelir-gider analizi</p>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
@@ -117,28 +133,57 @@ export default function ReportsPage() {
           </div>
         ) : data ? (
           <>
-            {/* Özet Kartları */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <p className="text-xs sm:text-sm text-gray-500">Toplam Harcama</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(data.summary.total)}</p>
+            {/* Ana Özet Kartları - Gelir, Gider, Net Bakiye */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              {/* Gelir */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-emerald-500">
+                <p className="text-xs sm:text-sm text-gray-500">Toplam Gelir</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">+{formatCurrency(data.incomeSummary?.total || 0)}</p>
+                <p className="text-xs text-gray-400">{data.incomeSummary?.count || 0} işlem</p>
+                {data.incomeComparison?.prevTotal > 0 && (
+                  <p className={`text-xs mt-1 ${data.incomeComparison.increased ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {data.incomeComparison.increased ? '↑' : '↓'} %{Math.abs(data.incomeComparison.changePercent).toFixed(0)}
+                  </p>
+                )}
+              </div>
+              {/* Gider */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-red-500">
+                <p className="text-xs sm:text-sm text-gray-500">Toplam Gider</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-600">-{formatCurrency(data.summary.total)}</p>
+                <p className="text-xs text-gray-400">{data.summary.count} işlem</p>
                 {data.comparison.prevTotal > 0 && (
-                  <p className={`text-xs sm:text-sm mt-1 ${data.comparison.increased ? 'text-red-500' : 'text-green-500'}`}>
+                  <p className={`text-xs mt-1 ${data.comparison.increased ? 'text-red-500' : 'text-emerald-500'}`}>
                     {data.comparison.increased ? '↑' : '↓'} %{Math.abs(data.comparison.changePercent).toFixed(0)}
                   </p>
                 )}
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <p className="text-xs sm:text-sm text-gray-500">İşlem Sayısı</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-800">{data.summary.count}</p>
+              {/* Net Bakiye */}
+              <div className={`bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 ${(data.netBalance || 0) >= 0 ? 'border-blue-500' : 'border-orange-500'}`}>
+                <p className="text-xs sm:text-sm text-gray-500">Net Bakiye</p>
+                <p className={`text-lg sm:text-2xl font-bold ${(data.netBalance || 0) >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                  {(data.netBalance || 0) >= 0 ? '+' : ''}{formatCurrency(data.netBalance || 0)}
+                </p>
+                <p className="text-xs text-gray-400">Gelir - Gider</p>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <p className="text-xs sm:text-sm text-gray-500">Ortalama</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(data.summary.average)}</p>
+            </div>
+
+            {/* Detay Kartları */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-emerald-600 font-medium">Ort. Gelir</p>
+                <p className="text-sm sm:text-lg font-bold text-emerald-700">{formatCurrency(data.incomeSummary?.average || 0)}</p>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <p className="text-xs sm:text-sm text-gray-500">En Yüksek</p>
-                <p className="text-lg sm:text-2xl font-bold text-gray-800">{formatCurrency(data.summary.max)}</p>
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-emerald-600 font-medium">En Yüksek Gelir</p>
+                <p className="text-sm sm:text-lg font-bold text-emerald-700">{formatCurrency(data.incomeSummary?.max || 0)}</p>
+              </div>
+              <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-red-600 font-medium">Ort. Gider</p>
+                <p className="text-sm sm:text-lg font-bold text-red-700">{formatCurrency(data.summary.average)}</p>
+              </div>
+              <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-3 sm:p-4">
+                <p className="text-xs text-red-600 font-medium">En Yüksek Gider</p>
+                <p className="text-sm sm:text-lg font-bold text-red-700">{formatCurrency(data.summary.max)}</p>
               </div>
             </div>
 
@@ -229,47 +274,90 @@ export default function ReportsPage() {
 
             {/* Detay Tabloları */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {/* Kategori Detayları */}
+              {/* Gider Kategori Detayları */}
               <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Kategori Detayları</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  Gider Kategorileri
+                </h3>
                 <div className="space-y-3">
-                  {data.categoryStats.map((cat, index) => {
-                    const percentage = (cat.total / data.summary.total) * 100
-                    return (
-                      <div key={cat.category}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs sm:text-sm font-medium text-gray-700">{cat.category}</span>
-                          <span className="text-xs sm:text-sm text-gray-500">{formatCurrency(cat.total)} ({cat.count})</span>
+                  {data.categoryStats.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">Henüz gider yok</p>
+                  ) : (
+                    data.categoryStats.map((cat, index) => {
+                      const percentage = data.summary.total > 0 ? (cat.total / data.summary.total) * 100 : 0
+                      return (
+                        <div key={cat.category}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700">{cat.category}</span>
+                            <span className="text-xs sm:text-sm text-gray-500">{formatCurrency(cat.total)} ({cat.count})</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="h-2 rounded-full transition-all duration-300"
+                              style={{
+                                width: `${percentage}%`,
+                                backgroundColor: COLORS[index % COLORS.length],
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="h-2 rounded-full transition-all duration-300"
-                            style={{
-                              width: `${percentage}%`,
-                              backgroundColor: COLORS[index % COLORS.length],
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })
+                  )}
                 </div>
               </div>
 
-              {/* En Büyük Harcamalar */}
+              {/* Gelir Kategori Detayları */}
               <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">En Büyük Harcamalar</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                  Gelir Kategorileri
+                </h3>
+                <div className="space-y-3">
+                  {!data.incomeCategoryStats || data.incomeCategoryStats.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">Henüz gelir yok</p>
+                  ) : (
+                    data.incomeCategoryStats.map((cat, index) => {
+                      const percentage = (data.incomeSummary?.total || 0) > 0 ? (cat.total / data.incomeSummary.total) * 100 : 0
+                      return (
+                        <div key={cat.category}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700">{cat.category}</span>
+                            <span className="text-xs sm:text-sm text-gray-500">{formatCurrency(cat.total)} ({cat.count})</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="h-2 rounded-full transition-all duration-300 bg-emerald-500"
+                              style={{
+                                width: `${percentage}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* En Büyük Giderler */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  En Büyük Giderler
+                </h3>
                 <div className="space-y-2 sm:space-y-3">
                   {data.topExpenses.length === 0 ? (
-                    <p className="text-gray-500 text-center py-4">Henüz harcama yok</p>
+                    <p className="text-gray-500 text-center py-4">Henüz gider yok</p>
                   ) : (
                     data.topExpenses.map((expense, index) => (
                       <div
                         key={expense.id}
-                        className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-2 sm:p-3 bg-red-50 rounded-lg"
                       >
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                          <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium shrink-0">
+                          <span className="w-5 h-5 sm:w-6 sm:h-6 bg-red-200 text-red-700 rounded-full flex items-center justify-center text-xs font-medium shrink-0">
                             {index + 1}
                           </span>
                           <div className="min-w-0">
@@ -279,7 +367,40 @@ export default function ReportsPage() {
                             </p>
                           </div>
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm sm:text-base shrink-0 ml-2">{formatCurrency(expense.amount)}</p>
+                        <p className="font-semibold text-red-600 text-sm sm:text-base shrink-0 ml-2">-{formatCurrency(expense.amount)}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* En Büyük Gelirler */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                  En Büyük Gelirler
+                </h3>
+                <div className="space-y-2 sm:space-y-3">
+                  {!data.topIncomes || data.topIncomes.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">Henüz gelir yok</p>
+                  ) : (
+                    data.topIncomes.map((income: any, index: number) => (
+                      <div
+                        key={income.id}
+                        className="flex items-center justify-between p-2 sm:p-3 bg-emerald-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-200 text-emerald-700 rounded-full flex items-center justify-center text-xs font-medium shrink-0">
+                            {index + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-800 text-sm sm:text-base truncate">{income.sender}</p>
+                            <p className="text-xs sm:text-sm text-gray-500">
+                              {income.category} • {format(new Date(income.date), 'd MMM', { locale: tr })}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="font-semibold text-emerald-600 text-sm sm:text-base shrink-0 ml-2">+{formatCurrency(income.amount)}</p>
                       </div>
                     ))
                   )}
